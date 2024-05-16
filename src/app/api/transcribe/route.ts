@@ -3,8 +3,7 @@ import ytdl from "ytdl-core";
 
 import OpenAI from "openai";
 import { waitFor } from "../../utils/waitFor";
-import { NextApiResponse } from "next";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: Request | NextRequest) {
   const { videoUrl } = await req.json();
@@ -63,7 +62,7 @@ export async function POST(req: Request | NextRequest) {
     } catch (error) {
       console.log(videoId + `.mp3` + "を削除できませんでした");
     }
-    return translatedScript;
+    return NextResponse.json({ transcription: translatedScript });
   });
 }
 
