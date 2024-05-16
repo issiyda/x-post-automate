@@ -74,7 +74,7 @@ export async function POST(req: Request | NextRequest) {
     console.error("Error during transcription process:", error);
     return NextResponse.json({
       transcription: "Error occurred",
-      error: error.message,
+      error,
     });
   }
 }
