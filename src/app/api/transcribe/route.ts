@@ -98,7 +98,7 @@ class WhisperApplicationService {
     const file = fs.createReadStream(audioFilePath);
 
     // 10秒間待つ
-    await waitFor(10);
+    await waitFor(5);
     console.log("10 seconds wait is over");
 
     // Whisperモデルを使用してテキスト変換リクエストを送信
