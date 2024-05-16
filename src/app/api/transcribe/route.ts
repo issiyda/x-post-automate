@@ -16,7 +16,7 @@ export async function POST(req: Request | NextRequest) {
 
     const audio = ytdl(videoUrl, { quality: "highestaudio" });
 
-    const audioFilePath = `${videoId}.mp3`;
+    const audioFilePath = `/tmp/${videoId}.mp3`;
     const writeStream = fs.createWriteStream(audioFilePath);
 
     // 非同期処理をPromiseでラップして完了を待つ
