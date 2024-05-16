@@ -1,6 +1,5 @@
 import fs from "fs";
 import ytdl from "ytdl-core";
-
 import OpenAI from "openai";
 import { waitFor } from "../../utils/waitFor";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,62 +7,76 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: Request | NextRequest) {
   const { videoUrl } = await req.json();
 
-  // 1. YouTube動画の情報を取得
-  const videoId = extractVideoId(videoUrl);
-  const audio = ytdl(videoUrl, { quality: "highestaudio" });
+  try {
+    // 1. YouTube動画の情報を取得
+    const videoId = extractVideoId(videoUrl);
+    if (!videoId) {
+      return NextResponse.json({ error: "Invalid video URL" });
+    }
 
-  audio.on("error", (err) => {
-    console.error(err);
-    return;
-  });
+    const audio = ytdl(videoUrl, { quality: "highestaudio" });
 
-  const audioFilePath = `${videoId}.mp3`;
-  audio.pipe(fs.createWriteStream(audioFilePath));
-  var starttime: number;
-  audio.once("response", () => {
-    starttime = Date.now();
-  });
+    const audioFilePath = `${videoId}.mp3`;
+    const writeStream = fs.createWriteStream(audioFilePath);
 
-  audio.on("progress", (chunkLength, downloaded, total) => {
-    const percent = downloaded / total;
-    const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
-    const estimatedDownloadTime =
-      downloadedMinutes / percent - downloadedMinutes;
-    process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
-    process.stdout.write(
-      `(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(
-        total /
-        1024 /
-        1024
-      ).toFixed(2)}MB)\n`
-    );
-    process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
-    process.stdout.write(
-      `, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `
-    );
-  });
+    // 非同期処理をPromiseでラップして完了を待つ
+    await new Promise((resolve, reject) => {
+      audio.pipe(writeStream);
 
-  console.log(`youtube file (${videoId}.mp3) downloaded.`);
-  //   mp3の場合はwav -> mp3変換してから返す
-  const targetFileName = `${videoId}.mp3`;
+      audio.on("error", (err) => {
+        console.error(err);
+        reject(err);
+      });
+      let starttime: number;
+      starttime = Date.now();
+      audio.on("progress", (chunkLength, downloaded, total) => {
+        const percent = downloaded / total;
+        const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
+        const estimatedDownloadTime =
+          downloadedMinutes / percent - downloadedMinutes;
+        process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
+        process.stdout.write(
+          `(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(
+            total /
+            1024 /
+            1024
+          ).toFixed(2)}MB)\n`
+        );
+        process.stdout.write(
+          `running for: ${downloadedMinutes.toFixed(2)}minutes`
+        );
+        process.stdout.write(
+          `, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `
+        );
+      });
 
-  audio.on("end", async () => {
-    console.log(`youtube file (${videoId}.mp3) downloaded.`);
+      audio.on("end", resolve);
+      audio.on("finish", resolve);
+    });
 
-    // whisperの処理
+    console.log(`YouTube file (${videoId}.mp3) downloaded.`);
+
+    // Whisperの処理
     const whisper = new WhisperApplicationService();
-    console.log("targetFileName", targetFileName);
+    console.log("targetFileName", audioFilePath);
 
-    const translatedScript = await whisper.translate(targetFileName);
+    const translatedScript = await whisper.translate(audioFilePath);
     console.log("translatedScript", translatedScript);
 
     try {
-      fs.unlinkSync(videoId + `.mp3`);
+      fs.unlinkSync(audioFilePath);
     } catch (error) {
-      console.log(videoId + `.mp3` + "を削除できませんでした");
+      console.log(`${audioFilePath}を削除できませんでした`);
     }
+
     return NextResponse.json({ transcription: translatedScript });
-  });
+  } catch (error) {
+    console.error("Error during transcription process:", error);
+    return NextResponse.json({
+      transcription: "Error occurred",
+      error: error.message,
+    });
+  }
 }
 
 // YouTube動画のURLから動画IDを抽出する関数
