@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import axios from "axios";
 
 export default function Home() {
   const [videoUrl, setVideoUrl] = useState("");
   const [transcription, setTranscription] = useState("");
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const response = await axios.post("/api/transcribe", { videoUrl });
     setTranscription(response.data.transcription);

@@ -3,8 +3,10 @@ import ytdl from "ytdl-core";
 
 import OpenAI from "openai";
 import { waitFor } from "../../utils/waitFor";
+import { NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 
-export async function POST(req) {
+export async function POST(req: Request | NextRequest) {
   const { videoUrl } = await req.json();
 
   // 1. YouTube動画の情報を取得
@@ -73,7 +75,7 @@ function extractVideoId(url: string) {
   return match ? match[1] : null;
 }
 
-export class WhisperApplicationService {
+class WhisperApplicationService {
   async translate(audioFileName: string) {
     const audioFilePath = `${audioFileName}`;
     console.log("audioFilePath", audioFilePath);
