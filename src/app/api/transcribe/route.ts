@@ -3,6 +3,7 @@ import ytdl from "ytdl-core";
 import OpenAI from "openai";
 import { waitFor } from "../../utils/waitFor";
 import { NextRequest, NextResponse } from "next/server";
+export const maxDuration = 60 * 5; // This function can run for a maximum of 5 seconds
 
 export async function POST(req: Request | NextRequest) {
   const { videoUrl } = await req.json();
