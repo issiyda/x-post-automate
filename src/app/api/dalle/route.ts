@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-export const maxDuration = 60 * 5; // This function can run for a maximum of 5 seconds
 const apiKey = process.env.OPENAI_API_KEY as string;
+
+// timeout時間を延長
+export const config = {
+  maxDuration: 60 * 5,
+};
 
 export async function POST(req: Request | NextRequest) {
   try {
