@@ -2,19 +2,19 @@
 import { FormEvent, useState } from "react";
 import axios from "axios";
 
-export default function Tweet() {
+export default function Twitter() {
   const [tweetText, setTweetText] = useState("");
   const [transcription, setTranscription] = useState("");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const response = await axios.post("/api/tweet", { tweetText });
+    const response = await axios.post("/api/twitter", { tweetText });
     setTranscription(response.data.transcription);
   };
 
   return (
     <div>
-      <h1>tweet Scriptor</h1>
+      <h1>tweet Scripter</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="text"

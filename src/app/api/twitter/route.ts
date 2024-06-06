@@ -1,26 +1,15 @@
-import { TwitterApi } from "twitter-api-v2";
 import { NextRequest, NextResponse } from "next/server";
-
-// APIキーとアクセストークンを設定
-const apiKey = process.env.API_KEY || "";
-const apiKeySecret = process.env.API_KEY_SECRET || "";
-const accessToken = process.env.ACCESS_TOKEN || "";
-const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "";
-
-// Twitter APIクライアントを作成
-const client = new TwitterApi({
-  appKey: apiKey,
-  appSecret: apiKeySecret,
-  accessToken: accessToken,
-  accessSecret: accessTokenSecret,
-});
-const rwClient = client.readWrite; // 書き込み可能なクライアントを取得
+import { rwClient } from "./client";
 
 export const maxDuration = 60 * 5; // This function can run for a maximum of 5 seconds
 
 export async function POST(req: Request | NextRequest) {
   try {
     const { imgPath, tweetText } = await req.json();
+    if (!imgPath) {
+      const { data: createdTweet } = await rwClient.v2.tweet(tweetText);
+      return NextResponse.json({ createdTweet });
+    }
 
     // 画像をバッファとして読み込む
     const imageResponse = await fetch(imgPath);
