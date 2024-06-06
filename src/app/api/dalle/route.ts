@@ -5,7 +5,7 @@ const apiKey = process.env.OPENAI_API_KEY as string;
 
 // timeout時間を延長
 export const config = {
-  maxDuration: 60 * 5,
+  maxDuration: 300,
 };
 
 export async function POST(req: Request | NextRequest) {
