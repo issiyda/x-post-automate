@@ -3,10 +3,7 @@ import OpenAI from "openai";
 
 const apiKey = process.env.OPENAI_API_KEY as string;
 
-// timeout時間を延長
-export const config = {
-  maxDuration: 300,
-};
+export const runtime = "edge";
 
 export async function POST(req: Request | NextRequest) {
   try {
